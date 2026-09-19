@@ -55,7 +55,6 @@
 
   h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: -.4px; }
 
-  /* Compact Options Panel */
   .panel-compact {
     background: linear-gradient(180deg, var(--card) 0%, var(--card-2) 100%);
     border: 1px solid var(--stroke); border-radius: var(--radius);
@@ -79,7 +78,6 @@
   .checkbox-inline { display: flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600; cursor: pointer; }
   .checkbox-inline input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
 
-  /* Large Dice Board Area */
   .panel-dice {
     flex: 1; background: linear-gradient(180deg, var(--card) 0%, var(--card-2) 100%);
     border: 1px solid var(--stroke); border-radius: var(--radius);
@@ -89,24 +87,24 @@
 
   .dice-board {
     flex: 1; display: flex; flex-wrap: wrap; justify-content: center; align-content: center;
-    gap: 16px; width: 100%; overflow: hidden;
+    gap: 16px; width: 100%; overflow: hidden; perspective: 1000px;
   }
 
-  /* 3D Dice styling with 1.5s Animation */
+  /* True 3D Dice with 2.0s Animation */
   .die {
-    width: 82px; height: 82px; border-radius: 16px;
+    width: 86px; height: 86px; border-radius: 18px;
     display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
-    padding: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    padding: 12px; box-shadow: 0 12px 32px rgba(0,0,0,0.5);
     position: relative; transform-style: preserve-3d;
   }
   .die.rolling {
-    animation: rollDiceAnim 1.5s cubic-bezier(0.15, 0.85, 0.35, 1.2) forwards;
+    animation: rollDice3D 2.0s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
   }
-  @keyframes rollDiceAnim {
-    0% { transform: scale(0.8) rotateX(0deg) rotateY(0deg) rotateZ(0deg); opacity: 0.5; }
-    30% { transform: scale(1.1) rotateX(360deg) rotateY(180deg) rotateZ(90deg); }
-    70% { transform: scale(1.05) rotateX(720deg) rotateY(540deg) rotateZ(180deg); }
-    100% { transform: scale(1) rotateX(1080deg) rotateY(1080deg) rotateZ(360deg); opacity: 1; }
+  @keyframes rollDice3D {
+    0% { transform: scale(0.6) rotateX(0deg) rotateY(0deg) rotateZ(0deg); opacity: 0.3; }
+    30% { transform: scale(1.15) rotateX(540deg) rotateY(360deg) rotateZ(180deg); }
+    70% { transform: scale(1.05) rotateX(1080deg) rotateY(900deg) rotateZ(360deg); }
+    100% { transform: scale(1) rotateX(1440deg) rotateY(1440deg) rotateZ(720deg); opacity: 1; }
   }
 
   .die.white { background: #f8fafc; border: 2px solid #cbd5e1; }
@@ -121,7 +119,6 @@
   }
   .dot.show { opacity: 1; }
 
-  /* Roll Button */
   .btn-generate {
     width: 100%; border: none; border-radius: 14px; padding: 15px;
     font-family: inherit; font-size: 1.1rem; font-weight: 800;
@@ -132,7 +129,6 @@
   }
   .btn-generate:active { transform: scale(.975); }
 
-  /* Modal */
   .modal-backdrop {
     position: fixed; inset: 0; background: rgba(5,8,18,.85);
     backdrop-filter: blur(4px); z-index: 200;
@@ -202,7 +198,6 @@
     <h1>Roll The Dice</h1>
   </header>
 
-  <!-- Compact Options Panel -->
   <section class="panel-compact">
     <div class="field-inline">
       <label for="diceCountSelect">Dice</label>
@@ -227,7 +222,6 @@
     </label>
   </section>
 
-  <!-- Large Dice Board Area -->
   <section class="panel-dice">
     <div class="dice-board" id="diceBoard"></div>
     <button class="btn-generate" id="btnRoll" type="button">ROLL</button>
@@ -235,7 +229,6 @@
 
 </div>
 
-<!-- SECRET MODAL -->
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
     <div class="modal-head">
@@ -243,7 +236,7 @@
       <button class="modal-close" id="modalClose" type="button">✕</button>
     </div>
     <p style="font-size: 0.78rem; color: var(--text-dim); margin-bottom: 12px;">
-      Set frequency percentages (total 100%). Use arrows for ±5% steps.
+      Set frequencies (total strictly 100%). Use arrows for ±5% steps.
     </p>
     <div class="weight-grid" id="weightGrid"></div>
     <div class="btn-row" style="margin-top: 10px;">
@@ -274,7 +267,6 @@
   const toastEl = $('toast');
 
   let weights = [16.66, 16.66, 16.66, 16.66, 16.66, 16.70];
-  let manualLocked = [false, false, false, false, false, false];
 
   try {
     const saved = localStorage.getItem('roll_dice_weights');
@@ -305,41 +297,42 @@
     });
   }
 
+  // Realistic Cup Rattling & Table Drop Sound
   function playDiceAudio() {
     if (!soundToggle.checked) return;
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       
-      // Shaking in cup phase
-      for (let t = 0; t < 1.3; t += 0.08) {
+      // Intensive rattling inside cup (0s to 1.8s)
+      for (let t = 0; t < 1.8; t += 0.06) {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(300 + Math.random() * 400, ctx.currentTime + t);
-        gain.gain.setValueAtTime(0.08, ctx.currentTime + t);
-        gain.gain.exponentialRampToValueValueAtTime ? gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.05) : gain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + t + 0.05);
+        osc.frequency.setValueAtTime(400 + Math.random() * 500, ctx.currentTime + t);
+        gain.gain.setValueAtTime(0.06, ctx.currentTime + t);
+        gain.gain.exponentialRampToValueAtTime ? gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.04) : gain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + t + 0.04);
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start(ctx.currentTime + t);
-        osc.stop(ctx.currentTime + t + 0.05);
+        osc.stop(ctx.currentTime + t + 0.04);
       }
 
-      // Heavy drop on table at 1.45s
+      // Heavy wooden table drop thud at exactly 1.95s
       setTimeout(() => {
         try {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(120, ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.2);
-          gain.gain.setValueAtTime(0.4, ctx.currentTime);
-          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+          osc.frequency.setValueAtTime(100, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(25, ctx.currentTime + 0.25);
+          gain.gain.setValueAtTime(0.5, ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.25);
           osc.connect(gain);
           gain.connect(ctx.destination);
           osc.start();
-          osc.stop(ctx.currentTime + 0.2);
+          osc.stop(ctx.currentTime + 0.25);
         } catch(e) {}
-      }, 1450);
+      }, 1950);
 
     } catch(e) {}
   }
@@ -373,7 +366,7 @@
       }
       renderDice(finalValues, false);
       isRollingActive = false;
-    }, 1500);
+    }, 2000);
   }
 
   renderDice([1, 6], false);
@@ -441,10 +434,9 @@
         let val = parseFloat(e.target.value);
         if (isNaN(val)) val = 0;
         if (val < 0) val = 0; if (val > 100) val = 100;
-        weights[idx] = val;
-        manualLocked[idx] = true;
-        balanceWeights(idx);
-        updateWeightInputsUI();
+        
+        adjustWeightsStrict(idx, val);
+        renderWeightInputs();
       });
     });
 
@@ -454,55 +446,49 @@
         const action = e.target.dataset.action;
         let val = weights[idx] + (action === 'plus' ? 5 : -5);
         if (val < 0) val = 0; if (val > 100) val = 100;
-        weights[idx] = val;
-        manualLocked[idx] = true;
-        balanceWeights(idx);
+        
+        adjustWeightsStrict(idx, val);
         renderWeightInputs();
       });
     });
   }
 
-  function updateWeightInputsUI() {
-    weights.forEach((w, idx) => {
-      const inp = weightGrid.querySelector(`input[data-index="${idx}"]`);
-      if (inp) inp.value = w.toFixed(1);
-    });
-  }
-
-  function balanceWeights(changedIdx) {
-    let lockedSum = 0;
-    let unlockedIndices = [];
-
-    weights.forEach((w, i) => {
-      if (manualLocked[i] || i === changedIdx) {
-        lockedSum += weights[i];
-      } else {
-        unlockedIndices.push(i);
-      }
-    });
-
-    if (lockedSum > 100) {
-      lockedSum = 100;
-      weights[changedIdx] = 100 - (lockedSum - weights[changedIdx]);
+  // Strict 100% balancing rule requested by user
+  function adjustWeightsStrict(changedIdx, targetVal) {
+    weights[changedIdx] = targetVal;
+    
+    let sumOthers = 0;
+    for (let i = 0; i < 6; i++) {
+      if (i !== changedIdx) sumOthers += weights[i];
     }
 
-    const remaining = 100 - lockedSum;
-    const currentUnlockedSum = unlockedIndices.reduce((sum, i) => sum + weights[i], 0);
+    const targetSumOthers = 100 - targetVal;
 
-    if (unlockedIndices.length > 0) {
-      unlockedIndices.forEach(i => {
-        if (currentUnlockedSum > 0) {
-          weights[i] = (weights[i] / currentUnlockedSum) * remaining;
-        } else {
-          weights[i] = remaining / unlockedIndices.length;
+    if (targetSumOthers <= 0) {
+      // If changed item is 100%, all others become 0%
+      for (let i = 0; i < 6; i++) {
+        if (i !== changedIdx) weights[i] = 0;
+      }
+    } else {
+      if (sumOthers === 0) {
+        // Distribute evenly if others were 0
+        const share = targetSumOthers / 5;
+        for (let i = 0; i < 6; i++) {
+          if (i !== changedIdx) weights[i] = share;
         }
-      });
+      } else {
+        // Proportionally scale others, or take/give from the largest if needed
+        for (let i = 0; i < 6; i++) {
+          if (i !== changedIdx) {
+            weights[i] = (weights[i] / sumOthers) * targetSumOthers;
+          }
+        }
+      }
     }
   }
 
   btnResetWeights.addEventListener('click', () => {
     weights = [16.66, 16.66, 16.66, 16.66, 16.66, 16.70];
-    manualLocked = [false, false, false, false, false, false];
     renderWeightInputs();
     showToast('Reset!');
   });
