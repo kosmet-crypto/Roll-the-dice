@@ -21,7 +21,7 @@
     --shadow: 0 10px 30px rgba(0,0,0,.45);
   }
 
-  html, body { height: 100%; }
+  html, body { height: 100%; overflow: hidden; }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -30,107 +30,85 @@
       linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 100%);
     background-attachment: fixed;
     color: var(--text);
-    min-height: 100dvh;
-    padding: calc(env(safe-area-inset-top, 0px) + 18px) 16px
-             calc(env(safe-area-inset-bottom, 0px) + 40px);
-    display: flex; justify-content: center;
+    height: 100dvh;
+    padding: calc(env(safe-area-inset-top, 0px) + 10px) 14px
+             calc(env(safe-area-inset-bottom, 0px) + 20px);
+    display: flex; justify-content: center; align-items: center;
     -webkit-font-smoothing: antialiased;
   }
 
-  .app { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 16px; }
+  .app { width: 100%; max-width: 560px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; }
 
-  header { text-align: center; }
+  header { text-align: center; display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 2px; }
 
   .dice-icon {
-    width: 56px; height: 56px; margin: 0 auto 12px;
+    width: 40px; height: 40px;
     display: grid; place-items: center;
-    border-radius: 16px;
+    border-radius: 12px;
     background: linear-gradient(180deg, #24325a, #131c33);
     border: 1px solid var(--stroke);
-    box-shadow: 0 8px 22px rgba(0,0,0,.4);
-    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,.4);
+    cursor: pointer; flex-shrink: 0;
   }
 
-  .dice-icon svg {
-    width: 30px; height: 30px;
-    fill: var(--accent);
-  }
+  .dice-icon svg { width: 22px; height: 22px; fill: var(--accent); }
 
-  h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -.4px; }
-  header p { color: var(--text-dim); font-size: .85rem; margin-top: 6px; }
+  h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: -.4px; }
 
-  .panel {
+  /* Compact Options Panel */
+  .panel-compact {
     background: linear-gradient(180deg, var(--card) 0%, var(--card-2) 100%);
     border: 1px solid var(--stroke); border-radius: var(--radius);
-    box-shadow: var(--shadow); padding: 16px;
+    box-shadow: var(--shadow); padding: 10px 14px;
+    display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: center;
   }
 
-  .panel-title {
-    font-size: .78rem; text-transform: uppercase; letter-spacing: 1.4px;
-    color: var(--text-dim); font-weight: 700; margin-bottom: 14px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .panel-title::after {
-    content: ""; flex: 1; height: 1px;
-    background: linear-gradient(90deg, var(--stroke), transparent);
-  }
-
-  .field { margin-bottom: 14px; }
-  .field:last-child { margin-bottom: 0; }
-  label {
-    display: block; font-size: .82rem; font-weight: 600;
-    color: var(--text-dim); margin-bottom: 7px;
-  }
-  select, input[type="number"] {
-    width: 100%; font-size: 1rem; font-family: inherit; color: var(--text);
-    background: #0e1730; border: 1px solid var(--stroke);
-    border-radius: 12px; padding: 13px 14px; outline: none;
-    -webkit-appearance: none; appearance: none;
-  }
+  .field-inline { display: flex; flex-direction: column; gap: 3px; }
+  .field-inline label { font-size: .7rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; }
+  
   select {
-    background-image:
-      linear-gradient(45deg, transparent 50%, var(--text-dim) 50%),
-      linear-gradient(135deg, var(--text-dim) 50%, transparent 50%);
-    background-position: calc(100% - 20px) calc(50% + 1px), calc(100% - 14px) calc(50% + 1px);
-    background-size: 6px 6px, 6px 6px; background-repeat: no-repeat;
-    padding-right: 40px;
+    width: 100%; font-size: .85rem; font-family: inherit; color: var(--text);
+    background: #0e1730; border: 1px solid var(--stroke);
+    border-radius: 10px; padding: 8px 10px; outline: none;
+    -webkit-appearance: none; appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--text-dim) 50%), linear-gradient(135deg, var(--text-dim) 50%, transparent 50%);
+    background-position: calc(100% - 12px) calc(50% + 1px), calc(100% - 8px) calc(50% + 1px);
+    background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; padding-right: 25px;
   }
 
-  /* Checkbox styling */
-  .checkbox-row {
-    display: flex; align-items: center; gap: 10px; cursor: pointer;
-    font-size: .92rem; font-weight: 600; color: var(--text);
-  }
-  .checkbox-row input {
-    width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer;
+  .checkbox-inline { display: flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600; cursor: pointer; }
+  .checkbox-inline input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+
+  /* Large Dice Board Area */
+  .panel-dice {
+    flex: 1; background: linear-gradient(180deg, var(--card) 0%, var(--card-2) 100%);
+    border: 1px solid var(--stroke); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 14px; display: flex; flex-direction: column;
+    justify-content: space-between; align-items: center; min-height: 0;
   }
 
-  /* Dice board */
   .dice-board {
-    display: flex; flex-wrap: wrap; justify-content: center; gap: 16px;
-    min-height: 140px; align-items: center; padding: 20px 0;
+    flex: 1; display: flex; flex-wrap: wrap; justify-content: center; align-content: center;
+    gap: 16px; width: 100%; overflow: hidden;
   }
 
-  /* 3D Dice styling */
+  /* 3D Dice styling with 1.5s Animation */
   .die {
-    width: 70px; height: 70px; border-radius: 14px;
+    width: 82px; height: 82px; border-radius: 16px;
     display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
-    padding: 10px; box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-    transition: transform 0.4s ease;
+    padding: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    position: relative; transform-style: preserve-3d;
   }
-  .die.shaking {
-    animation: shake 0.4s ease-in-out infinite;
+  .die.rolling {
+    animation: rollDiceAnim 1.5s cubic-bezier(0.15, 0.85, 0.35, 1.2) forwards;
   }
-  @keyframes shake {
-    0% { transform: translate(0, 0) rotate(0deg); }
-    20% { transform: translate(-4px, 4px) rotate(-10deg); }
-    40% { transform: translate(4px, -3px) rotate(10deg); }
-    60% { transform: translate(-3px, -2px) rotate(-6deg); }
-    80% { transform: translate(3px, 3px) rotate(6deg); }
-    100% { transform: translate(0, 0) rotate(0deg); }
+  @keyframes rollDiceAnim {
+    0% { transform: scale(0.8) rotateX(0deg) rotateY(0deg) rotateZ(0deg); opacity: 0.5; }
+    30% { transform: scale(1.1) rotateX(360deg) rotateY(180deg) rotateZ(90deg); }
+    70% { transform: scale(1.05) rotateX(720deg) rotateY(540deg) rotateZ(180deg); }
+    100% { transform: scale(1) rotateX(1080deg) rotateY(1080deg) rotateZ(360deg); opacity: 1; }
   }
 
-  /* Dice themes */
   .die.white { background: #f8fafc; border: 2px solid #cbd5e1; }
   .die.white .dot { background: #0f172a; }
 
@@ -138,32 +116,25 @@
   .die.black .dot { background: #f8fafc; }
 
   .dot {
-    width: 12px; height: 12px; border-radius: 50%; align-self: center; justify-self: center;
-    opacity: 0;
+    width: 14px; height: 14px; border-radius: 50%; align-self: center; justify-self: center;
+    opacity: 0; transition: opacity 0.2s;
   }
   .dot.show { opacity: 1; }
 
-  /* Buttons */
+  /* Roll Button */
   .btn-generate {
-    width: 100%; border: none; border-radius: 14px; padding: 17px;
-    font-family: inherit; font-size: 1.06rem; font-weight: 800;
-    letter-spacing: .3px; color: #1a1206;
+    width: 100%; border: none; border-radius: 14px; padding: 15px;
+    font-family: inherit; font-size: 1.1rem; font-weight: 800;
+    letter-spacing: .5px; color: #1a1206;
     background: linear-gradient(180deg, var(--accent-2) 0%, var(--accent) 100%);
     box-shadow: 0 8px 22px rgba(249,115,22,.32); cursor: pointer;
-    transition: transform .1s, box-shadow .15s;
+    transition: transform .1s; flex-shrink: 0;
   }
   .btn-generate:active { transform: scale(.975); }
 
-  .btn-secondary {
-    flex: 1; border: 1px solid var(--stroke); border-radius: 12px; padding: 12px;
-    font-family: inherit; font-size: .9rem; font-weight: 700;
-    color: var(--text); background: rgba(255,255,255,.04); cursor: pointer;
-  }
-  .btn-row { display: flex; gap: 8px; margin-top: 10px; }
-
   /* Modal */
   .modal-backdrop {
-    position: fixed; inset: 0; background: rgba(5,8,18,.82);
+    position: fixed; inset: 0; background: rgba(5,8,18,.85);
     backdrop-filter: blur(4px); z-index: 200;
     display: flex; align-items: flex-end; justify-content: center;
     opacity: 0; pointer-events: none; transition: opacity .2s;
@@ -179,17 +150,36 @@
   }
   .modal-backdrop.open .modal { transform: translateY(0); }
 
-  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-  .modal-head h2 { font-size: 1.05rem; font-weight: 800; }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .modal-head h2 { font-size: 1rem; font-weight: 800; }
   .modal-close {
-    width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--stroke);
-    background: rgba(255,255,255,.05); color: var(--text-dim); font-size: 1.2rem; cursor: pointer; display: grid; place-items: center;
+    width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--stroke);
+    background: rgba(255,255,255,.05); color: var(--text-dim); font-size: 1.1rem; cursor: pointer; display: grid; place-items: center;
   }
 
-  .weight-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
-  .weight-item { background: #0e1730; border: 1px solid var(--stroke); border-radius: 12px; padding: 10px; }
-  .weight-item label { font-size: .78rem; margin-bottom: 4px; }
-  .weight-item input { padding: 8px; font-size: .95rem; }
+  .weight-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .weight-row {
+    background: #0e1730; border: 1px solid var(--stroke); border-radius: 12px;
+    padding: 8px 12px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .weight-row label { font-size: .85rem; font-weight: 700; color: var(--text); }
+  .weight-controls { display: flex; align-items: center; gap: 6px; }
+  .weight-controls input {
+    width: 70px; padding: 6px; font-size: .95rem; text-align: center;
+    background: #131c33; border: 1px solid var(--stroke); border-radius: 8px; color: var(--text); outline: none;
+  }
+  .step-btn {
+    width: 32px; height: 32px; background: rgba(255,255,255,.08); border: 1px solid var(--stroke);
+    border-radius: 8px; color: var(--text); font-weight: bold; font-size: 1rem; cursor: pointer; display: grid; place-items: center;
+  }
+  .step-btn:active { background: var(--accent); color: #1a1206; }
+
+  .btn-secondary {
+    flex: 1; border: 1px solid var(--stroke); border-radius: 12px; padding: 12px;
+    font-family: inherit; font-size: .9rem; font-weight: 700;
+    color: var(--text); background: rgba(255,255,255,.04); cursor: pointer;
+  }
+  .btn-row { display: flex; gap: 8px; }
 
   #toast {
     position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
@@ -204,47 +194,43 @@
 <div class="app">
 
   <header>
-    <div class="dice-icon" id="secretTrigger" title="Tap 5 times for secret menu">
+    <div class="dice-icon" id="secretTrigger" title="Secret Menu">
       <svg viewBox="0 0 24 24">
         <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
       </svg>
     </div>
     <h1>Roll The Dice</h1>
-    <p>Bacite коцкице кликом или мућкањем телефона</p>
   </header>
 
-  <!-- Options Panel -->
-  <section class="panel">
-    <div class="panel-title">Подешавања</div>
-    <div class="field">
-      <label for="diceCountSelect">Број коцкица</label>
+  <!-- Compact Options Panel -->
+  <section class="panel-compact">
+    <div class="field-inline">
+      <label for="diceCountSelect">Dice</label>
       <select id="diceCountSelect">
-        <option value="1">1 коцкица</option>
-        <option value="2" selected>2 коцкице</option>
-        <option value="3">3 коцкице</option>
-        <option value="4">4 коцкице</option>
-        <option value="5">5 коцкица</option>
-        <option value="6">6 коцкица</option>
+        <option value="1">1</option>
+        <option value="2" selected>2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
       </select>
     </div>
-    <div class="field">
-      <label for="diceThemeSelect">Изглед коцкица</label>
+    <div class="field-inline">
+      <label for="diceThemeSelect">Theme</label>
       <select id="diceThemeSelect">
-        <option value="white">Беле са црним тачкама</option>
-        <option value="black">Црне са белим тачкама</option>
+        <option value="white">White</option>
+        <option value="black">Black</option>
       </select>
     </div>
-    <div class="field">
-      <label class="checkbox-row">
-        <input type="checkbox" id="soundToggle" checked> Звук мућкања
-      </label>
-    </div>
+    <label class="checkbox-inline" style="align-self: flex-end; padding-bottom: 6px;">
+      <input type="checkbox" id="soundToggle" checked> Sound
+    </label>
   </section>
 
-  <!-- Dice Area -->
-  <section class="panel" style="text-align: center;">
+  <!-- Large Dice Board Area -->
+  <section class="panel-dice">
     <div class="dice-board" id="diceBoard"></div>
-    <button class="btn-generate" id="btnRoll" type="button">ROLL (Мућкај)</button>
+    <button class="btn-generate" id="btnRoll" type="button">ROLL</button>
   </section>
 
 </div>
@@ -253,21 +239,21 @@
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
     <div class="modal-head">
-      <h2>Тајни мени — Проценти (Вероватноћа)</h2>
+      <h2>Secret Menu — Probabilities</h2>
       <button class="modal-close" id="modalClose" type="button">✕</button>
     </div>
-    <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 14px;">
-      Унесите жељене проценте учесталости за сваки број (укупно мора бити 100%).
+    <p style="font-size: 0.78rem; color: var(--text-dim); margin-bottom: 12px;">
+      Set frequency percentages (total 100%). Use arrows for ±5% steps.
     </p>
     <div class="weight-grid" id="weightGrid"></div>
-    <div class="btn-row">
-      <button class="btn-secondary" id="btnResetWeights" type="button" style="color: var(--accent);">Ресет</button>
+    <div class="btn-row" style="margin-top: 10px;">
+      <button class="btn-secondary" id="btnResetWeights" type="button" style="color: var(--accent);">Reset</button>
       <button class="btn-secondary" id="btnSaveWeights" type="button" style="background: var(--accent); color: #1a1206; font-weight: 800;">Save & Load</button>
     </div>
   </div>
 </div>
 
-<div id="toast" role="status">Сачувано локално!</div>
+<div id="toast" role="status">Saved locally!</div>
 
 <script>
 (function() {
@@ -287,19 +273,14 @@
   const btnSaveWeights = $('btnSaveWeights');
   const toastEl = $('toast');
 
-  // Default weights (16.66% each)
   let weights = [16.66, 16.66, 16.66, 16.66, 16.66, 16.70];
   let manualLocked = [false, false, false, false, false, false];
 
-  // Load from localStorage if available
   try {
     const saved = localStorage.getItem('roll_dice_weights');
-    if (saved) {
-      weights = JSON.parse(saved);
-    }
+    if (saved) weights = JSON.parse(saved);
   } catch(e) {}
 
-  // Dot patterns for dice faces 1-6
   const dotLayouts = {
     1: [4],
     2: [0, 8],
@@ -309,12 +290,12 @@
     6: [0, 2, 3, 5, 6, 8]
   };
 
-  function renderDice(values) {
+  function renderDice(values, isRolling = false) {
     diceBoard.innerHTML = '';
     const theme = diceThemeSelect.value;
     values.forEach(val => {
       const die = document.createElement('div');
-      die.className = `die ${theme}`;
+      die.className = `die ${theme}` + (isRolling ? ' rolling' : '');
       for (let i = 0; i < 9; i++) {
         const dot = document.createElement('div');
         dot.className = 'dot' + (dotLayouts[val].includes(i) ? ' show' : '');
@@ -324,22 +305,42 @@
     });
   }
 
-  // Web Audio API shake sound generator
-  function playShakeSound() {
+  function playDiceAudio() {
     if (!soundToggle.checked) return;
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(80, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.3);
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.3);
+      
+      // Shaking in cup phase
+      for (let t = 0; t < 1.3; t += 0.08) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300 + Math.random() * 400, ctx.currentTime + t);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime + t);
+        gain.gain.exponentialRampToValueValueAtTime ? gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.05) : gain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + t + 0.05);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + t);
+        osc.stop(ctx.currentTime + t + 0.05);
+      }
+
+      // Heavy drop on table at 1.45s
+      setTimeout(() => {
+        try {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(120, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.2);
+          gain.gain.setValueAtTime(0.4, ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.2);
+        } catch(e) {}
+      }, 1450);
+
     } catch(e) {}
   }
 
@@ -353,52 +354,52 @@
     return 6;
   }
 
+  let isRollingActive = false;
   function rollDice() {
-    playShakeSound();
-    const count = parseInt(diceCountSelect.value, 10);
-    const dies = [];
-    for (let i = 0; i < count; i++) {
-      dies.push(Math.floor(Math.random() * 6) + 1);
-    }
+    if (isRollingActive) return;
+    isRollingActive = true;
 
-    // Add shaking animation class
-    diceBoard.querySelectorAll('.die').forEach(d => d.classList.add('shaking'));
+    playDiceAudio();
+    const count = parseInt(diceCountSelect.value, 10);
+    
+    const tempValues = [];
+    for (let i = 0; i < count; i++) tempValues.push(Math.floor(Math.random() * 6) + 1);
+    renderDice(tempValues, true);
 
     setTimeout(() => {
       const finalValues = [];
       for (let i = 0; i < count; i++) {
         finalValues.push(getWeightedRandomNumber());
       }
-      renderDice(finalValues);
-    }, 400);
+      renderDice(finalValues, false);
+      isRollingActive = false;
+    }, 1500);
   }
 
-  // Initial render
-  renderDice([1, 6]);
+  renderDice([1, 6], false);
 
   btnRoll.addEventListener('click', rollDice);
 
-  // Shake detection via DeviceMotion
-  let lastX = 0, lastY = 0, lastZ = 0;
-  let lastTime = 0;
+  let lastX = null, lastY = null, lastZ = null;
+  let lastMotionTime = 0;
   window.addEventListener('devicemotion', (e) => {
-    const current = e.accelerationIncludingGravity;
-    if (!current) return;
+    const acc = e.accelerationIncludingGravity;
+    if (!acc) return;
     const now = Date.now();
-    if ((now - lastTime) > 100) {
-      const diffTime = now - lastTime;
-      lastTime = now;
-      const speed = Math.abs(current.x + current.y + current.z - lastX - lastY - lastZ) / diffTime * 10000;
-      if (speed > 800) {
-        rollDice();
+    if ((now - lastMotionTime) > 80) {
+      if (lastX !== null) {
+        const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
+        if (delta > 18) {
+          lastMotionTime = now;
+          rollDice();
+        }
       }
-      lastX = current.x;
-      lastY = current.y;
-      lastZ = current.z;
+      lastX = acc.x;
+      lastY = acc.y;
+      lastZ = acc.z;
     }
   });
 
-  // Secret menu trigger (5 taps)
   let tapCount = 0;
   let tapTimer = null;
   secretTrigger.addEventListener('click', () => {
@@ -421,13 +422,17 @@
   function renderWeightInputs() {
     weightGrid.innerHTML = '';
     weights.forEach((w, idx) => {
-      const item = document.createElement('div');
-      item.className = 'weight-item';
-      item.innerHTML = `
-        <label>Број ${idx + 1} (%)</label>
-        <input type="number" step="0.01" min="0" max="100" value="${w.toFixed(2)}" data-index="${idx}">
+      const row = document.createElement('div');
+      row.className = 'weight-row';
+      row.innerHTML = `
+        <label>Number ${idx + 1}</label>
+        <div class="weight-controls">
+          <button type="button" class="step-btn" data-index="${idx}" data-action="minus">-</button>
+          <input type="number" step="0.1" min="0" max="100" value="${w.toFixed(1)}" data-index="${idx}">
+          <button type="button" class="step-btn" data-index="${idx}" data-action="plus">+</button>
+        </div>
       `;
-      weightGrid.appendChild(item);
+      weightGrid.appendChild(row);
     });
 
     weightGrid.querySelectorAll('input').forEach(input => {
@@ -435,16 +440,32 @@
         const idx = parseInt(e.target.dataset.index, 10);
         let val = parseFloat(e.target.value);
         if (isNaN(val)) val = 0;
-        if (val < 0) val = 0;
-        if (val > 100) val = 100;
-
+        if (val < 0) val = 0; if (val > 100) val = 100;
         weights[idx] = val;
         manualLocked[idx] = true;
+        balanceWeights(idx);
+        updateWeightInputsUI();
+      });
+    });
 
-        // Auto balance remaining weights
+    weightGrid.querySelectorAll('.step-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(e.target.dataset.index, 10);
+        const action = e.target.dataset.action;
+        let val = weights[idx] + (action === 'plus' ? 5 : -5);
+        if (val < 0) val = 0; if (val > 100) val = 100;
+        weights[idx] = val;
+        manualLocked[idx] = true;
         balanceWeights(idx);
         renderWeightInputs();
       });
+    });
+  }
+
+  function updateWeightInputsUI() {
+    weights.forEach((w, idx) => {
+      const inp = weightGrid.querySelector(`input[data-index="${idx}"]`);
+      if (inp) inp.value = w.toFixed(1);
     });
   }
 
@@ -483,13 +504,13 @@
     weights = [16.66, 16.66, 16.66, 16.66, 16.66, 16.70];
     manualLocked = [false, false, false, false, false, false];
     renderWeightInputs();
-    showToast('Ресетовано на почетак!');
+    showToast('Reset!');
   });
 
   btnSaveWeights.addEventListener('click', () => {
     try {
       localStorage.setItem('roll_dice_weights', JSON.stringify(weights));
-      showToast('Успешно сачувано локално!');
+      showToast('Saved locally!');
       modalBackdrop.classList.remove('open');
     } catch(e) {}
   });
@@ -501,7 +522,7 @@
   }
 
   diceCountSelect.addEventListener('change', () => rollDice());
-  diceThemeSelect.addEventListener('change', () => renderDice([1, 6]));
+  diceThemeSelect.addEventListener('change', () => renderDice([1, 6], false));
 
 })();
 </script>
