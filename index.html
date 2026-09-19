@@ -90,7 +90,7 @@
     gap: 24px; width: 100%; overflow: hidden; perspective: 1200px;
   }
 
-  /* --- TRUE 3D CUBE DICE --- */
+  /* --- TRUE 3D CUBE DICE WITH FLUENT ANIMATION --- */
   .scene {
     width: 90px; height: 90px; perspective: 600px;
   }
@@ -100,17 +100,17 @@
     position: relative;
     transform-style: preserve-3d;
     transform: translateZ(-45px);
-    transition: transform 2s cubic-bezier(0.15, 0.85, 0.35, 1.2);
+    transition: transform 2.0s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   .cube.rolling {
-    animation: spinCube 2.0s cubic-bezier(0.15, 0.85, 0.35, 1.2) forwards;
+    animation: spinCubeFluent 2.0s cubic-bezier(0.25, 1, 0.5, 1) forwards;
   }
 
-  @keyframes spinCube {
+  @keyframes spinCubeFluent {
     0% { transform: translateZ(-45px) rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
-    30% { transform: translateZ(-45px) rotateX(720deg) rotateY(540deg) rotateZ(180deg); }
-    70% { transform: translateZ(-45px) rotateX(1260deg) rotateY(1080deg) rotateZ(360deg); }
+    40% { transform: translateZ(-45px) rotateX(900deg) rotateY(720deg) rotateZ(360deg); }
+    80% { transform: translateZ(-45px) rotateX(1350deg) rotateY(1260deg) rotateZ(540deg); }
     100% { transform: translateZ(-45px) var(--final-transform); }
   }
 
@@ -123,7 +123,6 @@
     box-shadow: inset 0 0 15px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.4);
   }
 
-  /* Themes */
   .cube.white .face { background: #f8fafc; border: 2px solid #cbd5e1; }
   .cube.white .dot { background: #0f172a; }
 
@@ -136,7 +135,6 @@
   }
   .dot.show { opacity: 1; }
 
-  /* Cube 3D Positioning of Faces */
   .face-1 { transform: rotateY(0deg) translateZ(45px); }
   .face-2 { transform: rotateY(-90deg) translateZ(45px); }
   .face-3 { transform: rotateX(90deg) translateZ(45px); }
@@ -307,7 +305,6 @@
     6: [0, 2, 3, 5, 6, 8]
   };
 
-  // Map dice faces to exact 3D rotations for the cube
   const faceRotations = {
     1: { x: 0, y: 0 },
     2: { x: 0, y: 90 },
@@ -337,7 +334,6 @@
       const cube = document.createElement('div');
       cube.className = `cube ${theme}` + (isRolling ? ' rolling' : '');
 
-      // Build all 6 faces of the 3D cube
       let cubeFacesHTML = '';
       for (let f = 1; f <= 6; f++) {
         cubeFacesHTML += createFaceHTML(f);
@@ -348,7 +344,6 @@
         const rot = faceRotations[val];
         cube.style.transform = `translateZ(-45px) rotateX(${rot.x}deg) rotateY(${rot.y}deg)`;
       } else {
-        // Random spin offsets during rolling
         const rx = faceRotations[val].x + 1440;
         const ry = faceRotations[val].y + 1440;
         cube.style.setProperty('--final-transform', `rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(360deg)`);
@@ -359,28 +354,16 @@
     });
   }
 
-  // Pleasant Magical / Chime Sound Effect
-  function playMagicSound() {
+  // Custom user sound file integration
+  const diceAudio = new Audio('Kockazvuk0.mp3');
+  diceAudio.preload = 'auto';
+
+  function playCustomSound() {
     if (!soundToggle.checked) return;
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C5, E5, G5, C6, E6
-      
-      notes.forEach((freq, idx) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, ctx.currentTime + (idx * 0.12));
-        
-        gain.gain.setValueAtTime(0.001, ctx.currentTime + (idx * 0.12));
-        gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + (idx * 0.12) + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + (idx * 0.12) + 0.8);
-        
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        
-        osc.start(ctx.currentTime + (idx * 0.12));
-        osc.stop(ctx.currentTime + (idx * 0.12) + 0.8);
+      diceAudio.currentTime = 0;
+      diceAudio.play().catch(e => {
+        console.log("Audio play blocked or waiting for user interaction", e);
       });
     } catch(e) {}
   }
@@ -400,7 +383,7 @@
     if (isRollingActive) return;
     isRollingActive = true;
 
-    playMagicSound();
+    playCustomSound();
     const count = parseInt(diceCountSelect.value, 10);
     
     const tempValues = [];
@@ -422,16 +405,17 @@
 
   btnRoll.addEventListener('click', rollDice);
 
+  // Improved highly responsive shake detector
   let lastX = null, lastY = null, lastZ = null;
   let lastMotionTime = 0;
   window.addEventListener('devicemotion', (e) => {
-    const acc = e.accelerationIncludingGravity;
+    const acc = e.accelerationIncludingGravity || e.acceleration;
     if (!acc) return;
     const now = Date.now();
-    if ((now - lastMotionTime) > 80) {
+    if ((now - lastMotionTime) > 100) {
       if (lastX !== null) {
         const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
-        if (delta > 18) {
+        if (delta > 12) { // Increased sensitivity for easier trigger
           lastMotionTime = now;
           rollDice();
         }
