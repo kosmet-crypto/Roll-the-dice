@@ -90,10 +90,7 @@
     gap: 24px; width: 100%; overflow: hidden; perspective: 1200px;
   }
 
-  /* --- TRUE 3D CUBE DICE WITH FLUENT ANIMATION --- */
-  .scene {
-    width: 90px; height: 90px; perspective: 600px;
-  }
+  .scene { width: 90px; height: 90px; perspective: 600px; }
 
   .cube {
     width: 100%; height: 100%;
@@ -151,6 +148,12 @@
     transition: transform .1s; flex-shrink: 0;
   }
   .btn-generate:active { transform: scale(.975); }
+
+  .btn-sensor {
+    width: 100%; border: 1px solid var(--stroke); border-radius: 12px; padding: 10px;
+    font-family: inherit; font-size: 0.85rem; font-weight: 700;
+    color: var(--accent); background: rgba(249,115,22,0.1); cursor: pointer; margin-top: 6px;
+  }
 
   .modal-backdrop {
     position: fixed; inset: 0; background: rgba(5,8,18,.85);
@@ -247,7 +250,10 @@
 
   <section class="panel-dice">
     <div class="dice-board" id="diceBoard"></div>
-    <button class="btn-generate" id="btnRoll" type="button">ROLL</button>
+    <div>
+      <button class="btn-generate" id="btnRoll" type="button">ROLL</button>
+      <button class="btn-sensor" id="btnEnableSensor" type="button">Enable Shake Sensor</button>
+    </div>
   </section>
 
 </div>
@@ -278,6 +284,7 @@
   const $ = id => document.getElementById(id);
   const diceBoard = $('diceBoard');
   const btnRoll = $('btnRoll');
+  const btnEnableSensor = $('btnEnableSensor');
   const diceCountSelect = $('diceCountSelect');
   const diceThemeSelect = $('diceThemeSelect');
   const soundToggle = $('soundToggle');
@@ -354,7 +361,7 @@
     });
   }
 
-  // Custom user sound file integration
+  // Audio initialization with user gesture unlock
   const diceAudio = new Audio('Kockazvuk0.mp3');
   diceAudio.preload = 'auto';
 
@@ -362,9 +369,7 @@
     if (!soundToggle.checked) return;
     try {
       diceAudio.currentTime = 0;
-      diceAudio.play().catch(e => {
-        console.log("Audio play blocked or waiting for user interaction", e);
-      });
+      diceAudio.play().catch(e => {});
     } catch(e) {}
   }
 
@@ -403,28 +408,52 @@
 
   renderDice([1, 6], false);
 
-  btnRoll.addEventListener('click', rollDice);
+  btnRoll.addEventListener('click', () => {
+    // Unlock audio context on user interaction
+    playCustomSound();
+    rollDice();
+  });
 
-  // Improved highly responsive shake detector
-  let lastX = null, lastY = null, lastZ = null;
-  let lastMotionTime = 0;
-  window.addEventListener('devicemotion', (e) => {
-    const acc = e.accelerationIncludingGravity || e.acceleration;
-    if (!acc) return;
-    const now = Date.now();
-    if ((now - lastMotionTime) > 100) {
-      if (lastX !== null) {
-        const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
-        if (delta > 12) { // Increased sensitivity for easier trigger
-          lastMotionTime = now;
-          rollDice();
+  // Enable Shake Sensor Button (Required for iOS & modern Android)
+  btnEnableSensor.addEventListener('click', () => {
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+      DeviceMotionEvent.requestPermission().then(response => {
+        if (response === 'granted') {
+          initShakeListener();
+          btnEnableSensor.style.display = 'none';
+          showToast('Shake sensor enabled!');
+        } else {
+          showToast('Permission denied');
         }
-      }
-      lastX = acc.x;
-      lastY = acc.y;
-      lastZ = acc.z;
+      }).catch(console.error);
+    } else {
+      initShakeListener();
+      btnEnableSensor.style.display = 'none';
+      showToast('Shake sensor enabled!');
     }
   });
+
+  function initShakeListener() {
+    let lastX = null, lastY = null, lastZ = null;
+    let lastMotionTime = 0;
+    window.addEventListener('devicemotion', (e) => {
+      const acc = e.accelerationIncludingGravity || e.acceleration;
+      if (!acc) return;
+      const now = Date.now();
+      if ((now - lastMotionTime) > 80) {
+        if (lastX !== null) {
+          const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
+          if (delta > 10) {
+            lastMotionTime = now;
+            rollDice();
+          }
+        }
+        lastX = acc.x;
+        lastY = acc.y;
+        lastZ = acc.z;
+      }
+    });
+  }
 
   let tapCount = 0;
   let tapTimer = null;
