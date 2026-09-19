@@ -96,7 +96,7 @@
     width: 100%; height: 100%;
     position: relative;
     transform-style: preserve-3d;
-    transition: transform 2.0s cubic-bezier(0.15, 0.85, 0.35, 1.2);
+    transition: transform 1.8s cubic-bezier(0.1, 0.8, 0.2, 1);
   }
 
   .face {
@@ -302,7 +302,6 @@
     6: [0, 2, 3, 5, 6, 8]
   };
 
-  // Exact rotations for 3D faces
   const faceRotations = {
     1: { x: 0, y: 0 },
     2: { x: 0, y: -90 },
@@ -374,18 +373,19 @@
       }
       cube.innerHTML = cubeFacesHTML;
 
-      // Start at random rotation and animate precisely to final face
-      const randomX = (Math.floor(Math.random() * 4) + 4) * 360;
-      const randomY = (Math.floor(Math.random() * 4) + 4) * 360;
+      // Set initial random heavy rotation instantly without transition
+      const startX = (Math.floor(Math.random() * 3) + 2) * 360;
+      const startY = (Math.floor(Math.random() * 3) + 2) * 360;
       
       cube.style.transition = 'none';
-      cube.style.transform = `rotateX(${randomX}deg) rotateY(${randomY}deg)`;
+      cube.style.transform = `rotateX(${startX}deg) rotateY(${startY}deg)`;
 
+      // Force reflow and animate smoothly to final target rotation
       setTimeout(() => {
-        cube.style.transition = 'transform 2.0s cubic-bezier(0.15, 0.85, 0.35, 1.2)';
+        cube.style.transition = 'transform 1.8s cubic-bezier(0.1, 0.8, 0.2, 1)';
         const rot = faceRotations[val];
         cube.style.transform = `rotateX(${rot.x}deg) rotateY(${rot.y}deg)`;
-      }, 50);
+      }, 20);
 
       scene.appendChild(cube);
       diceBoard.appendChild(scene);
@@ -393,7 +393,7 @@
 
     setTimeout(() => {
       isRollingActive = false;
-    }, 2050);
+    }, 1850);
   }
 
   const diceAudio = new Audio('Kockazvuk0.mp3');
