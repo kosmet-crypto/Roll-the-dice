@@ -96,19 +96,7 @@
     width: 100%; height: 100%;
     position: relative;
     transform-style: preserve-3d;
-    transform: translateZ(-45px);
-    transition: transform 2.0s cubic-bezier(0.25, 1, 0.5, 1);
-  }
-
-  .cube.rolling {
-    animation: spinCubeFluent 2.0s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-  }
-
-  @keyframes spinCubeFluent {
-    0% { transform: translateZ(-45px) rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
-    40% { transform: translateZ(-45px) rotateX(900deg) rotateY(720deg) rotateZ(360deg); }
-    80% { transform: translateZ(-45px) rotateX(1350deg) rotateY(1260deg) rotateZ(540deg); }
-    100% { transform: translateZ(-45px) var(--final-transform); }
+    transition: transform 2.0s cubic-bezier(0.15, 0.85, 0.35, 1.2);
   }
 
   .face {
@@ -118,6 +106,7 @@
     display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
     padding: 12px;
     box-shadow: inset 0 0 15px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.4);
+    backface-visibility: hidden;
   }
 
   .cube.white .face { background: #f8fafc; border: 2px solid #cbd5e1; }
@@ -132,11 +121,12 @@
   }
   .dot.show { opacity: 1; }
 
+  /* 3D Face layout */
   .face-1 { transform: rotateY(0deg) translateZ(45px); }
-  .face-2 { transform: rotateY(-90deg) translateZ(45px); }
-  .face-3 { transform: rotateX(90deg) translateZ(45px); }
-  .face-4 { transform: rotateX(-90deg) translateZ(45px); }
-  .face-5 { transform: rotateY(90deg) translateZ(45px); }
+  .face-2 { transform: rotateY(90deg) translateZ(45px); }
+  .face-3 { transform: rotateX(-90deg) translateZ(45px); }
+  .face-4 { transform: rotateX(90deg) translateZ(45px); }
+  .face-5 { transform: rotateY(-90deg) translateZ(45px); }
   .face-6 { transform: rotateY(180deg) translateZ(45px); }
 
   .btn-generate {
@@ -312,12 +302,13 @@
     6: [0, 2, 3, 5, 6, 8]
   };
 
+  // Exact rotations for 3D faces
   const faceRotations = {
     1: { x: 0, y: 0 },
-    2: { x: 0, y: 90 },
-    3: { x: -90, y: 0 },
-    4: { x: 90, y: 0 },
-    5: { x: 0, y: -90 },
+    2: { x: 0, y: -90 },
+    3: { x: 90, y: 0 },
+    4: { x: -90, y: 0 },
+    5: { x: 0, y: 90 },
     6: { x: 0, y: 180 }
   };
 
@@ -330,7 +321,7 @@
     return `<div class="face face-${faceNum}">${dotsHTML}</div>`;
   }
 
-  function renderDice(values, isRolling = false) {
+  function renderDice(values) {
     diceBoard.innerHTML = '';
     const theme = diceThemeSelect.value;
     
@@ -339,7 +330,7 @@
       scene.className = 'scene';
 
       const cube = document.createElement('div');
-      cube.className = `cube ${theme}` + (isRolling ? ' rolling' : '');
+      cube.className = `cube ${theme}`;
 
       let cubeFacesHTML = '';
       for (let f = 1; f <= 6; f++) {
@@ -347,21 +338,64 @@
       }
       cube.innerHTML = cubeFacesHTML;
 
-      if (!isRolling) {
-        const rot = faceRotations[val];
-        cube.style.transform = `translateZ(-45px) rotateX(${rot.x}deg) rotateY(${rot.y}deg)`;
-      } else {
-        const rx = faceRotations[val].x + 1440;
-        const ry = faceRotations[val].y + 1440;
-        cube.style.setProperty('--final-transform', `rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(360deg)`);
-      }
+      const rot = faceRotations[val];
+      cube.style.transform = `rotateX(${rot.x}deg) rotateY(${rot.y}deg)`;
 
       scene.appendChild(cube);
       diceBoard.appendChild(scene);
     });
   }
 
-  // Audio initialization with user gesture unlock
+  function rollDiceWithAnimation() {
+    if (isRollingActive) return;
+    isRollingActive = true;
+
+    playCustomSound();
+    const count = parseInt(diceCountSelect.value, 10);
+    
+    const finalValues = [];
+    for (let i = 0; i < count; i++) {
+      finalValues.push(getWeightedRandomNumber());
+    }
+
+    diceBoard.innerHTML = '';
+    const theme = diceThemeSelect.value;
+
+    finalValues.forEach(val => {
+      const scene = document.createElement('div');
+      scene.className = 'scene';
+
+      const cube = document.createElement('div');
+      cube.className = `cube ${theme}`;
+
+      let cubeFacesHTML = '';
+      for (let f = 1; f <= 6; f++) {
+        cubeFacesHTML += createFaceHTML(f);
+      }
+      cube.innerHTML = cubeFacesHTML;
+
+      // Start at random rotation and animate precisely to final face
+      const randomX = (Math.floor(Math.random() * 4) + 4) * 360;
+      const randomY = (Math.floor(Math.random() * 4) + 4) * 360;
+      
+      cube.style.transition = 'none';
+      cube.style.transform = `rotateX(${randomX}deg) rotateY(${randomY}deg)`;
+
+      setTimeout(() => {
+        cube.style.transition = 'transform 2.0s cubic-bezier(0.15, 0.85, 0.35, 1.2)';
+        const rot = faceRotations[val];
+        cube.style.transform = `rotateX(${rot.x}deg) rotateY(${rot.y}deg)`;
+      }, 50);
+
+      scene.appendChild(cube);
+      diceBoard.appendChild(scene);
+    });
+
+    setTimeout(() => {
+      isRollingActive = false;
+    }, 2050);
+  }
+
   const diceAudio = new Audio('Kockazvuk0.mp3');
   diceAudio.preload = 'auto';
 
@@ -384,37 +418,14 @@
   }
 
   let isRollingActive = false;
-  function rollDice() {
-    if (isRollingActive) return;
-    isRollingActive = true;
 
-    playCustomSound();
-    const count = parseInt(diceCountSelect.value, 10);
-    
-    const tempValues = [];
-    for (let i = 0; i < count; i++) tempValues.push(Math.floor(Math.random() * 6) + 1);
-    
-    renderDice(tempValues, true);
-
-    setTimeout(() => {
-      const finalValues = [];
-      for (let i = 0; i < count; i++) {
-        finalValues.push(getWeightedRandomNumber());
-      }
-      renderDice(finalValues, false);
-      isRollingActive = false;
-    }, 2000);
-  }
-
-  renderDice([1, 6], false);
+  renderDice([1, 6]);
 
   btnRoll.addEventListener('click', () => {
-    // Unlock audio context on user interaction
     playCustomSound();
-    rollDice();
+    rollDiceWithAnimation();
   });
 
-  // Enable Shake Sensor Button (Required for iOS & modern Android)
   btnEnableSensor.addEventListener('click', () => {
     if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
       DeviceMotionEvent.requestPermission().then(response => {
@@ -445,7 +456,7 @@
           const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
           if (delta > 10) {
             lastMotionTime = now;
-            rollDice();
+            rollDiceWithAnimation();
           }
         }
         lastX = acc.x;
@@ -565,8 +576,8 @@
     setTimeout(() => toastEl.classList.remove('show'), 2500);
   }
 
-  diceCountSelect.addEventListener('change', () => rollDice());
-  diceThemeSelect.addEventListener('change', () => renderDice([1, 6], false));
+  diceCountSelect.addEventListener('change', () => rollDiceWithAnimation());
+  diceThemeSelect.addEventListener('change', () => renderDice([1, 6]));
 
 })();
 </script>
