@@ -1,15 +1,19 @@
 {
-  "name": "Roll The Dice",
-  "short_name": "Dice",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#0b1120",
-  "theme_color": "#0f172a",
+  "lang": "en",
+  "dir": "ltr",
+  "name": "Roll The Dice Game",
+  "short_name": "DiceGame",
+  "description": "A 3D dice rolling game with custom weights",
   "icons": [
     {
       "src": "icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "start_url": "./index.html",
+  "display": "standalone",
+  "theme_color": "#0f172a",
+  "background_color": "#0b1120"
 }
