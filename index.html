@@ -87,37 +87,62 @@
 
   .dice-board {
     flex: 1; display: flex; flex-wrap: wrap; justify-content: center; align-content: center;
-    gap: 16px; width: 100%; overflow: hidden; perspective: 1000px;
+    gap: 24px; width: 100%; overflow: hidden; perspective: 1200px;
   }
 
-  /* True 3D Dice with 2.0s Animation */
-  .die {
-    width: 86px; height: 86px; border-radius: 18px;
+  /* --- TRUE 3D CUBE DICE --- */
+  .scene {
+    width: 90px; height: 90px; perspective: 600px;
+  }
+
+  .cube {
+    width: 100%; height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transform: translateZ(-45px);
+    transition: transform 2s cubic-bezier(0.15, 0.85, 0.35, 1.2);
+  }
+
+  .cube.rolling {
+    animation: spinCube 2.0s cubic-bezier(0.15, 0.85, 0.35, 1.2) forwards;
+  }
+
+  @keyframes spinCube {
+    0% { transform: translateZ(-45px) rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+    30% { transform: translateZ(-45px) rotateX(720deg) rotateY(540deg) rotateZ(180deg); }
+    70% { transform: translateZ(-45px) rotateX(1260deg) rotateY(1080deg) rotateZ(360deg); }
+    100% { transform: translateZ(-45px) var(--final-transform); }
+  }
+
+  .face {
+    position: absolute;
+    width: 90px; height: 90px;
+    border-radius: 16px;
     display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
-    padding: 12px; box-shadow: 0 12px 32px rgba(0,0,0,0.5);
-    position: relative; transform-style: preserve-3d;
-  }
-  .die.rolling {
-    animation: rollDice3D 2.0s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
-  }
-  @keyframes rollDice3D {
-    0% { transform: scale(0.6) rotateX(0deg) rotateY(0deg) rotateZ(0deg); opacity: 0.3; }
-    30% { transform: scale(1.15) rotateX(540deg) rotateY(360deg) rotateZ(180deg); }
-    70% { transform: scale(1.05) rotateX(1080deg) rotateY(900deg) rotateZ(360deg); }
-    100% { transform: scale(1) rotateX(1440deg) rotateY(1440deg) rotateZ(720deg); opacity: 1; }
+    padding: 12px;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.4);
   }
 
-  .die.white { background: #f8fafc; border: 2px solid #cbd5e1; }
-  .die.white .dot { background: #0f172a; }
+  /* Themes */
+  .cube.white .face { background: #f8fafc; border: 2px solid #cbd5e1; }
+  .cube.white .dot { background: #0f172a; }
 
-  .die.black { background: #0f172a; border: 2px solid #334155; }
-  .die.black .dot { background: #f8fafc; }
+  .cube.black .face { background: #0f172a; border: 2px solid #334155; }
+  .cube.black .dot { background: #f8fafc; }
 
   .dot {
-    width: 14px; height: 14px; border-radius: 50%; align-self: center; justify-self: center;
-    opacity: 0; transition: opacity 0.2s;
+    width: 13px; height: 13px; border-radius: 50%;
+    align-self: center; justify-self: center; opacity: 0;
   }
   .dot.show { opacity: 1; }
+
+  /* Cube 3D Positioning of Faces */
+  .face-1 { transform: rotateY(0deg) translateZ(45px); }
+  .face-2 { transform: rotateY(-90deg) translateZ(45px); }
+  .face-3 { transform: rotateX(90deg) translateZ(45px); }
+  .face-4 { transform: rotateX(-90deg) translateZ(45px); }
+  .face-5 { transform: rotateY(90deg) translateZ(45px); }
+  .face-6 { transform: rotateY(180deg) translateZ(45px); }
 
   .btn-generate {
     width: 100%; border: none; border-radius: 14px; padding: 15px;
@@ -282,58 +307,81 @@
     6: [0, 2, 3, 5, 6, 8]
   };
 
+  // Map dice faces to exact 3D rotations for the cube
+  const faceRotations = {
+    1: { x: 0, y: 0 },
+    2: { x: 0, y: 90 },
+    3: { x: -90, y: 0 },
+    4: { x: 90, y: 0 },
+    5: { x: 0, y: -90 },
+    6: { x: 0, y: 180 }
+  };
+
+  function createFaceHTML(faceNum) {
+    let dotsHTML = '';
+    for (let i = 0; i < 9; i++) {
+      const show = dotLayouts[faceNum].includes(i) ? ' show' : '';
+      dotsHTML += `<div class="dot${show}"></div>`;
+    }
+    return `<div class="face face-${faceNum}">${dotsHTML}</div>`;
+  }
+
   function renderDice(values, isRolling = false) {
     diceBoard.innerHTML = '';
     const theme = diceThemeSelect.value;
+    
     values.forEach(val => {
-      const die = document.createElement('div');
-      die.className = `die ${theme}` + (isRolling ? ' rolling' : '');
-      for (let i = 0; i < 9; i++) {
-        const dot = document.createElement('div');
-        dot.className = 'dot' + (dotLayouts[val].includes(i) ? ' show' : '');
-        die.appendChild(dot);
+      const scene = document.createElement('div');
+      scene.className = 'scene';
+
+      const cube = document.createElement('div');
+      cube.className = `cube ${theme}` + (isRolling ? ' rolling' : '');
+
+      // Build all 6 faces of the 3D cube
+      let cubeFacesHTML = '';
+      for (let f = 1; f <= 6; f++) {
+        cubeFacesHTML += createFaceHTML(f);
       }
-      diceBoard.appendChild(die);
+      cube.innerHTML = cubeFacesHTML;
+
+      if (!isRolling) {
+        const rot = faceRotations[val];
+        cube.style.transform = `translateZ(-45px) rotateX(${rot.x}deg) rotateY(${rot.y}deg)`;
+      } else {
+        // Random spin offsets during rolling
+        const rx = faceRotations[val].x + 1440;
+        const ry = faceRotations[val].y + 1440;
+        cube.style.setProperty('--final-transform', `rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(360deg)`);
+      }
+
+      scene.appendChild(cube);
+      diceBoard.appendChild(scene);
     });
   }
 
-  // Realistic Cup Rattling & Table Drop Sound
-  function playDiceAudio() {
+  // Pleasant Magical / Chime Sound Effect
+  function playMagicSound() {
     if (!soundToggle.checked) return;
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C5, E5, G5, C6, E6
       
-      // Intensive rattling inside cup (0s to 1.8s)
-      for (let t = 0; t < 1.8; t += 0.06) {
+      notes.forEach((freq, idx) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(400 + Math.random() * 500, ctx.currentTime + t);
-        gain.gain.setValueAtTime(0.06, ctx.currentTime + t);
-        gain.gain.exponentialRampToValueAtTime ? gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.04) : gain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + t + 0.04);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + (idx * 0.12));
+        
+        gain.gain.setValueAtTime(0.001, ctx.currentTime + (idx * 0.12));
+        gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + (idx * 0.12) + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + (idx * 0.12) + 0.8);
+        
         osc.connect(gain);
         gain.connect(ctx.destination);
-        osc.start(ctx.currentTime + t);
-        osc.stop(ctx.currentTime + t + 0.04);
-      }
-
-      // Heavy wooden table drop thud at exactly 1.95s
-      setTimeout(() => {
-        try {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(100, ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(25, ctx.currentTime + 0.25);
-          gain.gain.setValueAtTime(0.5, ctx.currentTime);
-          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.25);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.25);
-        } catch(e) {}
-      }, 1950);
-
+        
+        osc.start(ctx.currentTime + (idx * 0.12));
+        osc.stop(ctx.currentTime + (idx * 0.12) + 0.8);
+      });
     } catch(e) {}
   }
 
@@ -352,11 +400,12 @@
     if (isRollingActive) return;
     isRollingActive = true;
 
-    playDiceAudio();
+    playMagicSound();
     const count = parseInt(diceCountSelect.value, 10);
     
     const tempValues = [];
     for (let i = 0; i < count; i++) tempValues.push(Math.floor(Math.random() * 6) + 1);
+    
     renderDice(tempValues, true);
 
     setTimeout(() => {
@@ -453,7 +502,6 @@
     });
   }
 
-  // Strict 100% balancing rule requested by user
   function adjustWeightsStrict(changedIdx, targetVal) {
     weights[changedIdx] = targetVal;
     
@@ -465,19 +513,16 @@
     const targetSumOthers = 100 - targetVal;
 
     if (targetSumOthers <= 0) {
-      // If changed item is 100%, all others become 0%
       for (let i = 0; i < 6; i++) {
         if (i !== changedIdx) weights[i] = 0;
       }
     } else {
       if (sumOthers === 0) {
-        // Distribute evenly if others were 0
         const share = targetSumOthers / 5;
         for (let i = 0; i < 6; i++) {
           if (i !== changedIdx) weights[i] = share;
         }
       } else {
-        // Proportionally scale others, or take/give from the largest if needed
         for (let i = 0; i < 6; i++) {
           if (i !== changedIdx) {
             weights[i] = (weights[i] / sumOthers) * targetSumOthers;
