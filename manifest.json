@@ -1,19 +1,19 @@
 {
   "lang": "en",
   "dir": "ltr",
-  "name": "Roll The Dice Game",
-  "short_name": "DiceGame",
-  "description": "A 3D dice rolling game with custom weights",
-  "icons": [
-    {
-      "src": "icon.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "start_url": "./index.html",
+  "name": "Roll the Dice",
+  "short_name": "Dice",
+  "description": "Roll up to six 3D dice with a tap or a shake.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1120",
   "theme_color": "#0f172a",
-  "background_color": "#0b1120"
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
 }
