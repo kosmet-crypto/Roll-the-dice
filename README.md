@@ -24,7 +24,8 @@ Always the newest version: https://github.com/kosmet-crypto/Roll-the-dice/releas
 3. Install. Newer APKs install over the old one and keep your settings.
 
 The app checks for a newer release at most twice a day and offers to download it. Updates are not silent:
-you tap **Download**, then open the file to install.
+you tap **Download**, then open the file to install. To check right away, tap **Check for updates** under the ROLL button
+(in the web version it reloads the page when a newer one is online).
 
 The APK bundles `index.html`, the sound and the icons, so it works offline from the first launch.
 The Android project lives in `android/` (a small WebView wrapper). To build locally: `cd android && ./gradlew assembleRelease`.

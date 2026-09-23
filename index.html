@@ -146,6 +146,16 @@
     color: var(--accent); background: rgba(249,115,22,0.1); cursor: pointer; margin-top: 6px;
   }
 
+  .update-row {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-top: 8px; font-size: .75rem; color: var(--text-dim);
+  }
+  .btn-link {
+    border: none; background: none; padding: 4px 2px; cursor: pointer;
+    font-family: inherit; font-size: .75rem; font-weight: 700; color: var(--text-dim);
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+
   .modal-backdrop {
     position: fixed; inset: 0; background: rgba(5,8,18,.85);
     backdrop-filter: blur(4px); z-index: 200;
@@ -242,6 +252,10 @@
     <div style="width: 100%;">
       <button class="btn-generate" id="btnRoll" type="button">ROLL</button>
       <button class="btn-sensor" id="btnEnableSensor" type="button">Enable Shake Sensor</button>
+      <div class="update-row">
+        <span id="appVersion"></span>
+        <button class="btn-link" id="btnCheckUpdate" type="button">Check for updates</button>
+      </div>
     </div>
   </section>
 
@@ -595,9 +609,33 @@
   diceThemeSelect.addEventListener('change', () => { savePrefs(); renderDice(currentValues); });
   soundToggle.addEventListener('change', savePrefs);
 
+  /* ---------- updates ---------- */
+  // Android app: the native side asks GitHub Releases and shows the result itself.
+  // Web/PWA: compare the page the service worker cached with the one on the server.
+  const android = window.DiceAndroid;
+  if (android && android.getVersion) $('appVersion').textContent = 'v' + android.getVersion();
+
+  async function checkForUpdate() {
+    if (android && android.checkForUpdate) { android.checkForUpdate(); return; }
+    showToast('Checking for updates…');
+    try {
+      // Unique URL + no-store so neither the service worker nor the HTTP cache answers.
+      const res = await fetch('index.html?check=' + Date.now(), { cache: 'no-store' });
+      if (!res.ok) throw new Error(res.status);
+      const fresh = await res.text();
+      const cached = window.caches ? await caches.match('./index.html') : null;
+      const reg = navigator.serviceWorker ? await navigator.serviceWorker.getRegistration() : null;
+      if (reg) reg.update().catch(() => {});
+      if (cached && (await cached.text()) !== fresh) {
+        showToast('New version found. Updating…');
+        setTimeout(() => location.reload(), 900);
+      } else showToast('You have the latest version');
+    } catch (e) { showToast('Could not check. Are you online?'); }
+  }
+  $('btnCheckUpdate').addEventListener('click', checkForUpdate);
+
   // Offline support for the web version (the Android app bundles its files instead).
-  if ('serviceWorker' in navigator && location.protocol === 'https:' &&
-      location.hostname !== 'appassets.androidplatform.net') {
+  if ('serviceWorker' in navigator && location.protocol === 'https:' && !android) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 

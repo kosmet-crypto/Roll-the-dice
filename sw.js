@@ -1,6 +1,6 @@
 /* Roll the Dice service worker: offline support.
    Bump VERSION when shipping changes to the app shell list below. */
-const VERSION = 'dice-v2';
+const VERSION = 'dice-v3';
 const SHELL = [
   './',
   './index.html',
@@ -34,7 +34,8 @@ function putInCache(req, res){
 
 self.addEventListener('fetch', e => {
   const req = e.request;
-  if(req.method !== 'GET') return;
+  // Update checks ask for a fresh copy; let those go straight to the network.
+  if(req.method !== 'GET' || req.cache === 'no-store') return;
   const url = new URL(req.url);
 
   // Page loads: network first so updates show up, cached copy when offline.
