@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Roll The Dice">
 <title>Roll The Dice</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -44,14 +47,12 @@
   .dice-icon {
     width: 40px; height: 40px;
     display: grid; place-items: center;
-    border-radius: 12px;
-    background: linear-gradient(180deg, #24325a, #131c33);
-    border: 1px solid var(--stroke);
+    border-radius: 12px; overflow: hidden;
     box-shadow: 0 4px 12px rgba(0,0,0,.4);
     cursor: pointer; flex-shrink: 0;
   }
 
-  .dice-icon svg { width: 22px; height: 22px; fill: var(--accent); }
+  .dice-icon img { width: 100%; height: 100%; display: block; }
 
   h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: -.4px; }
 
@@ -195,7 +196,7 @@
 
   #toast {
     position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
-    transform: translate(-50%, 140%); background: #15803d; color: #fff;
+    transform: translate(-50%, calc(100% + 60px)); background: #15803d; color: #fff;
     font-size: .84rem; font-weight: 600; padding: 12px 20px; border-radius: 999px;
     box-shadow: 0 10px 26px rgba(0,0,0,.5); transition: transform .3s; z-index: 300;
   }
@@ -207,9 +208,7 @@
 
   <header>
     <div class="dice-icon" id="secretTrigger" title="Secret Menu">
-      <svg viewBox="0 0 24 24">
-        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-      </svg>
+      <img src="icons/icon-192.png" alt="">
     </div>
     <h1>Roll The Dice</h1>
   </header>
@@ -240,7 +239,7 @@
 
   <section class="panel-dice">
     <div class="dice-board" id="diceBoard"></div>
-    <div>
+    <div style="width: 100%;">
       <button class="btn-generate" id="btnRoll" type="button">ROLL</button>
       <button class="btn-sensor" id="btnEnableSensor" type="button">Enable Shake Sensor</button>
     </div>
@@ -286,12 +285,33 @@
   const btnSaveWeights = $('btnSaveWeights');
   const toastEl = $('toast');
 
-  let weights = [16.66, 16.66, 16.66, 16.66, 16.66, 16.70];
+  const DEFAULT_WEIGHTS = [16.66, 16.66, 16.66, 16.66, 16.66, 16.70];
+  let weights = DEFAULT_WEIGHTS.slice();
 
   try {
-    const saved = localStorage.getItem('roll_dice_weights');
-    if (saved) weights = JSON.parse(saved);
+    const saved = JSON.parse(localStorage.getItem('roll_dice_weights'));
+    const valid = Array.isArray(saved) && saved.length === 6 &&
+      saved.every(w => typeof w === 'number' && w >= 0) && saved.some(w => w > 0);
+    if (valid) weights = saved;
   } catch(e) {}
+
+  // Dice count, theme and sound are remembered between visits.
+  try {
+    const prefs = JSON.parse(localStorage.getItem('roll_dice_prefs')) || {};
+    if (['1','2','3','4','5','6'].includes(prefs.count)) diceCountSelect.value = prefs.count;
+    if (['white','black'].includes(prefs.theme)) diceThemeSelect.value = prefs.theme;
+    if (typeof prefs.sound === 'boolean') soundToggle.checked = prefs.sound;
+  } catch(e) {}
+
+  function savePrefs() {
+    try {
+      localStorage.setItem('roll_dice_prefs', JSON.stringify({
+        count: diceCountSelect.value, theme: diceThemeSelect.value, sound: soundToggle.checked
+      }));
+    } catch(e) {}
+  }
+
+  let currentValues = [];
 
   const dotLayouts = {
     1: [4],
@@ -320,28 +340,31 @@
     return `<div class="face face-${faceNum}">${dotsHTML}</div>`;
   }
 
+  function buildCube(theme) {
+    const scene = document.createElement('div');
+    scene.className = 'scene';
+    const cube = document.createElement('div');
+    cube.className = `cube ${theme}`;
+    let cubeFacesHTML = '';
+    for (let f = 1; f <= 6; f++) cubeFacesHTML += createFaceHTML(f);
+    cube.innerHTML = cubeFacesHTML;
+    scene.appendChild(cube);
+    diceBoard.appendChild(scene);
+    return cube;
+  }
+
+  function faceTransform(val) {
+    const rot = faceRotations[val];
+    return `rotateX(${rot.x}deg) rotateY(${rot.y}deg)`;
+  }
+
+  // Shows dice without animation (first load, theme change).
   function renderDice(values) {
+    currentValues = values;
     diceBoard.innerHTML = '';
     const theme = diceThemeSelect.value;
-    
     values.forEach(val => {
-      const scene = document.createElement('div');
-      scene.className = 'scene';
-
-      const cube = document.createElement('div');
-      cube.className = `cube ${theme}`;
-
-      let cubeFacesHTML = '';
-      for (let f = 1; f <= 6; f++) {
-        cubeFacesHTML += createFaceHTML(f);
-      }
-      cube.innerHTML = cubeFacesHTML;
-
-      const rot = faceRotations[val];
-      cube.style.transform = `rotateX(${rot.x}deg) rotateY(${rot.y}deg)`;
-
-      scene.appendChild(cube);
-      diceBoard.appendChild(scene);
+      buildCube(theme).style.transform = faceTransform(val);
     });
   }
 
@@ -351,44 +374,27 @@
 
     playCustomSound();
     const count = parseInt(diceCountSelect.value, 10);
-    
+
     const finalValues = [];
     for (let i = 0; i < count; i++) {
       finalValues.push(getWeightedRandomNumber());
     }
+    currentValues = finalValues;
 
     diceBoard.innerHTML = '';
     const theme = diceThemeSelect.value;
 
     finalValues.forEach(val => {
-      const scene = document.createElement('div');
-      scene.className = 'scene';
+      const cube = buildCube(theme);
 
-      const cube = document.createElement('div');
-      cube.className = `cube ${theme}`;
-
-      let cubeFacesHTML = '';
-      for (let f = 1; f <= 6; f++) {
-        cubeFacesHTML += createFaceHTML(f);
-      }
-      cube.innerHTML = cubeFacesHTML;
-
-      // Set initial random heavy rotation instantly without transition
+      // Start from a few full turns without transition, then spin to the rolled face.
       const startX = (Math.floor(Math.random() * 3) + 2) * 360;
       const startY = (Math.floor(Math.random() * 3) + 2) * 360;
-      
       cube.style.transition = 'none';
       cube.style.transform = `rotateX(${startX}deg) rotateY(${startY}deg)`;
-
-      // Force reflow and animate smoothly to final target rotation
-      setTimeout(() => {
-        cube.style.transition = 'transform 1.8s cubic-bezier(0.1, 0.8, 0.2, 1)';
-        const rot = faceRotations[val];
-        cube.style.transform = `rotateX(${rot.x}deg) rotateY(${rot.y}deg)`;
-      }, 20);
-
-      scene.appendChild(cube);
-      diceBoard.appendChild(scene);
+      void cube.offsetWidth; // apply the start position before animating
+      cube.style.transition = 'transform 1.8s cubic-bezier(0.1, 0.8, 0.2, 1)';
+      cube.style.transform = faceTransform(val);
     });
 
     setTimeout(() => {
@@ -419,27 +425,36 @@
 
   let isRollingActive = false;
 
-  renderDice([1, 6]);
+  renderDice([1, 6, 3, 4, 2, 5].slice(0, parseInt(diceCountSelect.value, 10)));
 
-  btnRoll.addEventListener('click', () => {
-    playCustomSound();
-    rollDiceWithAnimation();
-  });
+  // rollDiceWithAnimation plays the sound itself.
+  btnRoll.addEventListener('click', rollDiceWithAnimation);
+
+  function enableShake() {
+    initShakeListener();
+    btnEnableSensor.style.display = 'none';
+    try { localStorage.setItem('roll_dice_shake', '1'); } catch(e) {}
+  }
+
+  const needsMotionPermission = typeof DeviceMotionEvent !== 'undefined' &&
+    typeof DeviceMotionEvent.requestPermission === 'function';
+  // iOS asks for permission on every visit (needs a tap); elsewhere turn it back on right away.
+  try {
+    if (!needsMotionPermission && localStorage.getItem('roll_dice_shake') === '1') enableShake();
+  } catch(e) {}
 
   btnEnableSensor.addEventListener('click', () => {
     if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
       DeviceMotionEvent.requestPermission().then(response => {
         if (response === 'granted') {
-          initShakeListener();
-          btnEnableSensor.style.display = 'none';
+          enableShake();
           showToast('Shake sensor enabled!');
         } else {
           showToast('Permission denied');
         }
       }).catch(console.error);
     } else {
-      initShakeListener();
-      btnEnableSensor.style.display = 'none';
+      enableShake();
       showToast('Shake sensor enabled!');
     }
   });
@@ -502,7 +517,7 @@
     });
 
     weightGrid.querySelectorAll('input').forEach(input => {
-      input.addEventListener('input', (e) => {
+      input.addEventListener('change', (e) => {
         const idx = parseInt(e.target.dataset.index, 10);
         let val = parseFloat(e.target.value);
         if (isNaN(val)) val = 0;
@@ -557,7 +572,7 @@
   }
 
   btnResetWeights.addEventListener('click', () => {
-    weights = [16.66, 16.66, 16.66, 16.66, 16.66, 16.70];
+    weights = DEFAULT_WEIGHTS.slice();
     renderWeightInputs();
     showToast('Reset!');
   });
@@ -576,8 +591,15 @@
     setTimeout(() => toastEl.classList.remove('show'), 2500);
   }
 
-  diceCountSelect.addEventListener('change', () => rollDiceWithAnimation());
-  diceThemeSelect.addEventListener('change', () => renderDice([1, 6]));
+  diceCountSelect.addEventListener('change', () => { savePrefs(); rollDiceWithAnimation(); });
+  diceThemeSelect.addEventListener('change', () => { savePrefs(); renderDice(currentValues); });
+  soundToggle.addEventListener('change', savePrefs);
+
+  // Offline support for the web version (the Android app bundles its files instead).
+  if ('serviceWorker' in navigator && location.protocol === 'https:' &&
+      location.hostname !== 'appassets.androidplatform.net') {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
 
 })();
 </script>

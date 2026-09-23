@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Single-colour die for themed icons (the system tints it). Generated from the same geometry as icons/icon.svg. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="672"
+    android:viewportHeight="672">
+    <group android:translateX="336" android:translateY="336" android:rotation="-12">
+        <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd"
+            android:pathData="M-69,-115H69A46,46 0,0 1,115,-69V69A46,46 0,0 1,69,115H-69A46,46 0,0 1,-115,69V-69A46,46 0,0 1,-69,-115ZM-81.65,-62.1a19.55,19.55 0,1 1,39.1,0a19.55,19.55 0,1 1,-39.1,0ZM42.55,-62.1a19.55,19.55 0,1 1,39.1,0a19.55,19.55 0,1 1,-39.1,0ZM-19.55,0a19.55,19.55 0,1 1,39.1,0a19.55,19.55 0,1 1,-39.1,0ZM-81.65,62.1a19.55,19.55 0,1 1,39.1,0a19.55,19.55 0,1 1,-39.1,0ZM42.55,62.1a19.55,19.55 0,1 1,39.1,0a19.55,19.55 0,1 1,-39.1,0Z" />
+    </group>
+</vector>

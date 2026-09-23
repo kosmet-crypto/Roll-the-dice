@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Navy tile with a warm glow. Generated from the same geometry as icons/icon.svg. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <path android:pathData="M0,0h512v512h-512z">
+                <aapt:attr name="android:fillColor">
+                    <gradient android:type="linear" android:startX="0" android:startY="0" android:endX="512" android:endY="512">
+                        <item android:offset="0" android:color="#FF26355F" />
+                        <item android:offset="1" android:color="#FF0B1120" />
+                    </gradient>
+                </aapt:attr>
+    </path>
+    <path android:pathData="M0,0h512v512h-512z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial" android:centerX="317" android:centerY="164" android:gradientRadius="307">
+                <item android:offset="0" android:color="#59F97316" />
+                <item android:offset="1" android:color="#00F97316" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>
