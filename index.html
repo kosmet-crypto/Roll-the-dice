@@ -116,6 +116,40 @@
   .cube.black .face { background: #0f172a; border: 2px solid #334155; }
   .cube.black .dot { background: #f8fafc; }
 
+  .cube.red .face { background: #dc2626; border: 2px solid #f87171; }
+  .cube.red .dot { background: #fff; }
+
+  .cube.blue .face { background: #2563eb; border: 2px solid #60a5fa; }
+  .cube.blue .dot { background: #fff; }
+
+  .cube.green .face { background: #16a34a; border: 2px solid #4ade80; }
+  .cube.green .dot { background: #fff; }
+
+  .cube.purple .face { background: #7c3aed; border: 2px solid #a78bfa; }
+  .cube.purple .dot { background: #fff; }
+
+  .cube.gold .face { background: #f59e0b; border: 2px solid #fcd34d; }
+  .cube.gold .dot { background: #1c1917; }
+
+  /* Held dice: tapped to keep their value on the next roll. */
+  .scene { position: relative; cursor: pointer; }
+  .scene.held::after {
+    content: ''; position: absolute; inset: -7px; border-radius: 22px;
+    border: 3px solid var(--accent); box-shadow: 0 0 16px rgba(249,115,22,.55);
+    pointer-events: none;
+  }
+  .scene.held::before {
+    content: 'HELD'; position: absolute; left: 50%; bottom: -24px; transform: translateX(-50%);
+    font-size: .62rem; font-weight: 800; letter-spacing: 1px; color: var(--accent);
+    pointer-events: none;
+  }
+
+  .dice-total { text-align: center; margin: 6px 0 10px; transition: opacity .2s; }
+  .dice-total.rolling { opacity: .35; }
+  .dice-total .sum { font-size: 1.5rem; font-weight: 800; letter-spacing: -.3px; }
+  .dice-total .sum b { color: var(--accent); }
+  .dice-total .hint { font-size: .72rem; color: var(--text-dim); margin-top: 2px; }
+
   .dot {
     width: 13px; height: 13px; border-radius: 50%;
     align-self: center; justify-self: center; opacity: 0;
@@ -240,6 +274,11 @@
       <select id="diceThemeSelect">
         <option value="white">White</option>
         <option value="black">Black</option>
+        <option value="red">Red</option>
+        <option value="blue">Blue</option>
+        <option value="green">Green</option>
+        <option value="purple">Purple</option>
+        <option value="gold">Gold</option>
       </select>
     </div>
     <label class="checkbox-inline" style="align-self: flex-end; padding-bottom: 6px;">
@@ -249,6 +288,10 @@
 
   <section class="panel-dice">
     <div class="dice-board" id="diceBoard"></div>
+    <div class="dice-total" id="diceTotal">
+      <div class="sum">Total: <b id="diceSum">0</b></div>
+      <div class="hint" id="holdHint">Tap a die to hold it</div>
+    </div>
     <div style="width: 100%;">
       <button class="btn-generate" id="btnRoll" type="button">ROLL</button>
       <button class="btn-sensor" id="btnEnableSensor" type="button">Enable Shake Sensor</button>
@@ -313,7 +356,7 @@
   try {
     const prefs = JSON.parse(localStorage.getItem('roll_dice_prefs')) || {};
     if (['1','2','3','4','5','6'].includes(prefs.count)) diceCountSelect.value = prefs.count;
-    if (['white','black'].includes(prefs.theme)) diceThemeSelect.value = prefs.theme;
+    if (['white','black','red','blue','green','purple','gold'].includes(prefs.theme)) diceThemeSelect.value = prefs.theme;
     if (typeof prefs.sound === 'boolean') soundToggle.checked = prefs.sound;
   } catch(e) {}
 
@@ -326,6 +369,7 @@
   }
 
   let currentValues = [];
+  let held = []; // held[i] true: die i keeps its value on the next roll
 
   const dotLayouts = {
     1: [4],
@@ -354,9 +398,10 @@
     return `<div class="face face-${faceNum}">${dotsHTML}</div>`;
   }
 
-  function buildCube(theme) {
+  function buildCube(theme, index) {
     const scene = document.createElement('div');
-    scene.className = 'scene';
+    scene.className = 'scene' + (held[index] ? ' held' : '');
+    scene.dataset.index = index;
     const cube = document.createElement('div');
     cube.className = `cube ${theme}`;
     let cubeFacesHTML = '';
@@ -372,34 +417,57 @@
     return `rotateX(${rot.x}deg) rotateY(${rot.y}deg)`;
   }
 
+  function updateTotal() {
+    $('diceSum').textContent = currentValues.reduce((a, b) => a + b, 0);
+    $('holdHint').style.visibility = currentValues.length > 1 ? 'visible' : 'hidden';
+    $('diceTotal').classList.remove('rolling');
+  }
+
   // Shows dice without animation (first load, theme change).
   function renderDice(values) {
     currentValues = values;
     diceBoard.innerHTML = '';
     const theme = diceThemeSelect.value;
-    values.forEach(val => {
-      buildCube(theme).style.transform = faceTransform(val);
+    values.forEach((val, i) => {
+      buildCube(theme, i).style.transform = faceTransform(val);
     });
+    updateTotal();
   }
+
+  // Tap a die to hold or release it (not while the dice are spinning).
+  diceBoard.addEventListener('click', (e) => {
+    const scene = e.target.closest('.scene');
+    if (!scene || isRollingActive) return;
+    const i = parseInt(scene.dataset.index, 10);
+    held[i] = !held[i];
+    scene.classList.toggle('held', held[i]);
+  });
 
   function rollDiceWithAnimation() {
     if (isRollingActive) return;
+    const count = parseInt(diceCountSelect.value, 10);
+    if (currentValues.length === count && held.slice(0, count).every(Boolean)) {
+      showToast('All dice are held. Tap one to release it.');
+      return;
+    }
     isRollingActive = true;
 
     playCustomSound();
-    const count = parseInt(diceCountSelect.value, 10);
 
     const finalValues = [];
     for (let i = 0; i < count; i++) {
-      finalValues.push(getWeightedRandomNumber());
+      const keep = held[i] && currentValues[i];
+      finalValues.push(keep ? currentValues[i] : getWeightedRandomNumber());
     }
     currentValues = finalValues;
+    $('diceTotal').classList.add('rolling');
 
     diceBoard.innerHTML = '';
     const theme = diceThemeSelect.value;
 
-    finalValues.forEach(val => {
-      const cube = buildCube(theme);
+    finalValues.forEach((val, i) => {
+      const cube = buildCube(theme, i);
+      if (held[i]) { cube.style.transform = faceTransform(val); return; }
 
       // Start from a few full turns without transition, then spin to the rolled face.
       const startX = (Math.floor(Math.random() * 3) + 2) * 360;
@@ -413,6 +481,7 @@
 
     setTimeout(() => {
       isRollingActive = false;
+      updateTotal();
     }, 1850);
   }
 
@@ -605,7 +674,7 @@
     setTimeout(() => toastEl.classList.remove('show'), 2500);
   }
 
-  diceCountSelect.addEventListener('change', () => { savePrefs(); rollDiceWithAnimation(); });
+  diceCountSelect.addEventListener('change', () => { savePrefs(); held = []; rollDiceWithAnimation(); });
   diceThemeSelect.addEventListener('change', () => { savePrefs(); renderDice(currentValues); });
   soundToggle.addEventListener('change', savePrefs);
 

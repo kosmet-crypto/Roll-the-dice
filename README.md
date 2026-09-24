@@ -4,7 +4,8 @@ A 3D dice roller for phones and desktop browsers. Roll 1–6 dice with a tap or 
 Vanilla HTML, CSS and JavaScript in a single `index.html`.
 
 ## Features
-* 1–6 animated 3D dice, white or black.
+* 1–6 animated 3D dice in seven colours, with the total shown under them.
+* Tap a die to hold it: held dice keep their value on the next roll.
 * Dice sound (can be turned off) and shake-to-roll.
 * Your dice count, theme and sound setting are remembered.
 * Installable as an app (PWA) and works offline after the first visit.
