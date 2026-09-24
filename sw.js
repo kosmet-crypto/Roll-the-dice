@@ -1,6 +1,6 @@
 /* Roll the Dice service worker: offline support.
    Bump VERSION when shipping changes to the app shell list below. */
-const VERSION = 'dice-v4';
+const VERSION = 'dice-v5';
 const SHELL = [
   './',
   './index.html',
