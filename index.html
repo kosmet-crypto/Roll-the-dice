@@ -446,7 +446,9 @@
   function rollDiceWithAnimation() {
     if (isRollingActive) return;
     const count = parseInt(diceCountSelect.value, 10);
-    if (currentValues.length === count && held.slice(0, count).every(Boolean)) {
+    // Array.from, not held.slice: dice never tapped have no entry and must count as not held.
+    const allHeld = Array.from({ length: count }, (_, i) => !!held[i]).every(Boolean);
+    if (currentValues.length === count && allHeld) {
       showToast('All dice are held. Tap one to release it.');
       return;
     }
